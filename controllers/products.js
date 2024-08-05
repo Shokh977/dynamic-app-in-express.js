@@ -1,4 +1,5 @@
-const Product = require("../models/product");
+// importing module 
+const Product = require('../models/product')
 
 exports.getAddProduct = (req, res, next) => {
   res.render("add-product", {
@@ -11,19 +12,24 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
-  const product = new Product(req.body.title);
-  product.save();
+  // creating ne object and passing data to the Product class as an argument
+  // req.body.tile is coming from the name = "title" from input tag in the add-product.ejs
+  const product = new Product(req.body.title)
+  //and pushing the data got from title input to the array in the Module (Product class)
+  product.save()
   res.redirect("/");
 };
 
 exports.getProducts = (req, res, next) => {
-  const products = Product.fetchAll();
-  res.render("shop", {
-    prods: products,
-    pageTitle: "shop page",
-    path: "/",
-    hasProducts: products.length > 0,
-    activeShop: true,
-    productCSS: true,
-  });
+    //this is a fetchAll function from Product class 
+    // return products array in the module 
+    const products = Product.fetchAll()
+    res.render("shop", {
+      prods: products,
+      pageTitle: "shop page",
+      path: "/",
+      hasProducts: products.length > 0,
+      activeShop: true,
+      productCSS: true,
+    });
 };
