@@ -1,19 +1,45 @@
-// just empty array to store products
-const products = []
+const fs = require("fs");
+const path = require("path");
+
+//defining folder path and creating file in it.
+const p = path.join(
+  path.dirname(process.mainModule.filename),
+  "data",
+  "products.json"
+);
+///////////////////////////////////////////////
+
+
+// helper function to reuse it to make the code leaner.
+const getProductsFromFile = (cb) => {
+
+  fs.readFile(p, (err, fileContent) => {
+    if (err) {
+      cb([]);
+    } else {
+      cb(JSON.parse(fileContent));
+    }
+  });
+};
 
 // this is a class-based module
+
 module.exports = class Product {
-  // here is the t inside of the constructor is an argument coming from where this Product Class is used
-  constructor(t){
-     this.title = t
-  }
-  // save is a method to get the argument and store it to the empty array above
-  save(){
-    products.push(this)
+  constructor(t) {
+    this.title = t;
   }
 
-  // this just returns the array
-  static fetchAll(){
-    return products
+  // getting and storing data
+  save() {
+    getProductsFromFile((products) => {
+      products.push(this);
+      fs.writeFile(p, JSON.stringify(products), (err) => {
+        console.log(err);
+      });
+    });
+   }
+ // returning data to make the data available in other component like procucts.js file on controller.
+  static fetchAll(cb) {
+    getProductsFromFile(cb);
   }
-}
+};
