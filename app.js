@@ -10,19 +10,16 @@ app.set("view engine", "ejs");
 app.set("views", "views");
 
 const errorController = require("./controllers/error");
+const db = require("./util/database");
 
 // importing routes
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
 
-app.use((req, res, next) => {
-    res.locals.path = req.path;
-    next();
-  });
 
-  // getting inserted data from inputs
+// getting inserted data from inputs
 app.use(bodyParser.urlencoded({ extended: false }));
-  // using static components setting public folder as a default
+// using static components setting public folder as a default
 app.use(express.static(path.join(__dirname, "public")));
 
 // using components after importing from routes above
