@@ -10,12 +10,11 @@ app.set("view engine", "ejs");
 app.set("views", "views");
 
 const errorController = require("./controllers/error");
-const db = require("./util/database");
+const sequelize = require("./util/database");
 
 // importing routes
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
-
 
 // getting inserted data from inputs
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -27,5 +26,10 @@ app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(errorController.error404);
 
-// listening the port 3000
-app.listen(3000);
+// it helps us to sync our model to the database
+sequelize
+  .sync()
+  .then(()=>{
+    app.listen(3000);
+  })
+  .catch((err) => console.log(err));
