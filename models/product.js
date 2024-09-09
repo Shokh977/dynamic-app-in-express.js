@@ -5,25 +5,25 @@ const sequelize = require("../util/database");
 const Product = sequelize.define("product", {
   id: {
     type: Sequelize.INTEGER,
-    autoIncrement: true, // Corrected typo here
-    allowNull: false, // Corrected typo here
+    autoIncrement: true, 
+    allowNull: false,
     primaryKey: true,
   },
   title: {
     type: Sequelize.STRING,
-    allowNull: false, // Ensure to explicitly mention allowNull if required
+    allowNull: false,
   },
   price: {
     type: Sequelize.DOUBLE,
-    allowNull: false, // Corrected typo here
+    allowNull: false,
   },
   imageUrl: {
     type: Sequelize.STRING,
-    allowNull: false, // Corrected typo here
+    allowNull: false,
   },
   description: {
     type: Sequelize.STRING,
-    allowNull: false, // Corrected typo here
+    allowNull: false, 
   },
 });
 

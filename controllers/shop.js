@@ -1,6 +1,7 @@
 // importing module
 const Cart = require("../models/cart");
 const Product = require("../models/product");
+const Order = require("../models/order");
 
 exports.getProducts = (req, res, next) => {
   Product.findAll()
@@ -8,7 +9,7 @@ exports.getProducts = (req, res, next) => {
       res.render("shop/product-list", {
         prods: products,
         pageTitle: "all products",
-        path: "/products",
+        path: "/",
       });
     })
     .catch((err) => console.log(err));
@@ -59,10 +60,11 @@ exports.getCart = (req, res, next) => {
     });
   });
 };
-
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
   let fetchedCart;
+  let newQuantity = 1;
+
   req.user
     .getCart()
     .then((cart) => {
@@ -74,20 +76,65 @@ exports.postCart = (req, res, next) => {
       if (products.length > 0) {
         product = products[0];
       }
-      let newQty = 1;
+
+      // Initialize newQuantity to 1, or set it based on existing quantity.
       if (product) {
-        //...
+        // Handle cases where quantity is null
+        const oldQuantity = product.cartItem.quantity || 0; // Use 0 if null
+        newQuantity = oldQuantity + 1;
+        return product;
       }
-      return Product.findByPk(prodId)
-        .then((product) => {
-          return fetchedCart.addProduct(product, {
-            through: { quantity: newQty },
-          });
-        })
-        .then(res.redirect('/cart'))
-        .catch();
+
+      // If the product does not exist in the cart, fetch it from the database
+      return Product.findByPk(prodId);
     })
-    .catch();
+    .then((product) => {
+      if (!product) {
+        // Handle error if product is not found
+        return res.status(404).send("Product not found");
+      }
+
+      // Add the product to the cart with the updated quantity
+      return fetchedCart.addProduct(product, {
+        through: { quantity: newQuantity },
+      });
+    })
+    .then(() => {
+      // Redirect after successfully adding/updating the product in the cart
+      res.redirect("/cart");
+    })
+    .catch((error) => {
+      // Error handling
+      console.error(error);
+      res.status(500).send("An error occurred while updating the cart");
+    });
+};
+
+exports.postOrders = (req, res, next) => {
+  let fetchedCart;
+  req.user
+    .getCart()
+    .then((cart) => {
+      return cart.getProducts();
+    })
+    .then((products) => {
+      return req.user
+        .createOrder()
+        .then((order) => {
+          return order.addProducts(
+            products.map((product) => {
+              product.orderItem = { quantity: product.cartItem.quantity };
+              return product;
+            })
+          );
+        })
+        .catch((err) => console.log(err));
+    })
+    .then(() => {
+
+      res.redirect("/orders");
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.getOrders = (req, res, next) => {
@@ -102,4 +149,21 @@ exports.getCheckout = (req, res, next) => {
     path: "/checkout",
     pageTitle: "Checkout",
   });
+};
+
+exports.postDeleteCartProduct = (req, res, next) => {
+  const prodId = req.body.productId;
+  req.user
+    .getCart()
+    .then((cart) => {
+      return cart.getProducts({ where: { id: prodId } });
+    })
+    .then((products) => {
+      const product = products[0];
+      return product.cartItem.destroy();
+    })
+    .then(() => {
+      res.redirect("/cart");
+    })
+    .catch((err) => console.log(err, "deleteing cart err"));
 };

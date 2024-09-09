@@ -9,12 +9,15 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", "views");
 
+// importing models
 const errorController = require("./controllers/error");
 const sequelize = require("./util/database");
 const Product = require("./models/product");
 const User = require("./models/User");
 const Cart = require("./models/cart");
 const CartItem = require("./models/cart-Item");
+const Order = require('./models/order')
+const OrderItem = require('./models/order-items')
 
 // importing routes
 const adminRoutes = require("./routes/admin");
@@ -22,6 +25,7 @@ const shopRoutes = require("./routes/shop");
 
 // getting inserted data from inputs
 app.use(bodyParser.urlencoded({ extended: false }));
+
 // using static components setting public folder as a default
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -45,6 +49,9 @@ User.hasOne(Cart);
 Cart.belongsTo(User);
 Cart.belongsToMany(Product, { through: CartItem });
 Product.belongsToMany(Cart, { through: CartItem });
+Order.belongsTo(User)
+User.hasMany(Order)
+Order.belongsToMany(Product, {through : OrderItem})
 
 // it helps us to sync our model to the database
 sequelize
