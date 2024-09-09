@@ -1,3 +1,4 @@
+const { where } = require("sequelize");
 const Product = require("../models/product");
 
 exports.getAddProduct = (req, res, next) => {
@@ -13,12 +14,13 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  Product.create({
-    title: title,
-    price: price,
-    imageUrl: imageUrl,
-    description: description,
-  })
+  req.user
+    .createProduct({
+      title: title,
+      price: price,
+      imageUrl: imageUrl,
+      description: description,
+    })
     .then(res.redirect("/products"))
     .catch((err) => console.log(err));
 };
@@ -29,10 +31,13 @@ exports.getEditProduct = (req, res, next) => {
     return res.redirect("/");
   }
   const prodId = req.params.productId;
-  Product.findByPk(prodId)
-    .then((product) => {
-      if (!product) {
-        console.log(product, "products : ");
+  req.user
+    .getProducts({ where: { id: prodId } }) // this is get specific product belongs to the user model (authenticated user)
+    // Product.findByPk(prodId)            // this line of code just get any single product matches the id
+    .then((products) => {
+      const product = products[0];
+      if (!products) {
+        console.log(products, "products : ");
         return res.redirect("/");
       }
       res.render("admin/edit-product", {
@@ -68,7 +73,7 @@ exports.postEditProduct = (req, res, next) => {
 // admin products
 
 exports.getAdminProducts = (req, res, next) => {
-  Product.findAll().then((products) => {
+  req.user.getProducts().then((products) => {
     res.render("admin/products", {
       prods: products,
       pageTitle: "admin products",
